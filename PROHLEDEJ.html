@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<style>
+table, th, td {
+    border: 1px solid black;
+  border-collapse: collapse;
+}
+</style>
+
+</head>
+
+<body>
+
+<button onclick="Testtestu()">Test</button>
+
+
+<button onclick="NajdiCestu()">Najdi cestu</button>
+<br>
+<p>---------------</p>
+<label for="lname">Počet vrcholů</label>
+<input type="number" id="pocetVrcholu" name="lname"  maxlength="2" size="2"><br>
+<p>----------------------</p>
+  <label for="cesta">Cesta z:</label>
+  <input type="text" id="cestaZ" name="cesta" maxlength="1" size="1">
+  <label for="cesta">Cesta do:</label>
+  <input type="text" id="cestaD" name="cesta" maxlength="1" size="1"><br><br>
+
+<br><button onclick="GenerujTabulku()">Generuj tabulku</button>
+<div id="tabulka"></div>
+<br>
+<p>-----------------</p>
+<div id="path"></div>
+<br>
+<div id="respons">Výsledná cesta:<br></div>
+
+
+
+
+<script>
+
+
+let  v;
+
+let adjList;
+
+function Testtestu(){
+
+	var sousedi = "BCDE";
+	var vrchol="A";
+	var z;
+	var d;
+
+	var pocetSousedu = sousedi.length;
+	for(var r=0;r<pocetSousedu;r++){
+		z=vrchol;
+		d =sousedi.substr(r,1);
+	}
+
+	for(var r=0;r<pocetSousedu;r++){
+		z=sousedi.substr(r,1);
+		d =vrchol;
+	}
+
+
+}
+
+
+
+
+function SetPoleVrcholu(vrcholIn,sousediIn){
+
+	var sousedi = sousediIn;
+	var vrchol = vrcholIn;
+	var z;
+	var d;
+	var intZ;
+	var intD;
+
+	var pocetSousedu = sousedi.length;
+	for(var r=0;r<pocetSousedu;r++){
+		z=vrchol;
+		d =sousedi.substr(r,1);
+		
+		intZ = GetNumberFromString(z);
+		intD = GetNumberFromString(d);
+		
+		addEdge(intZ, intD);//zapíšu do pole hranu
+	}
+
+	for(var r=0;r<pocetSousedu;r++){
+		z=sousedi.substr(r,1);
+		d =vrchol;
+		
+		intZ = GetNumberFromString(z);
+		intD = GetNumberFromString(d);
+		
+		addEdge(intZ, intD);//zapíšu do pole hranu
+	}
+
+
+}
+
+
+
+
+//----převede písmeno na číslo------------
+function GetNumberFromString(st){
+
+	st = st.toUpperCase();
+	var nOut;
+    var strigIn = "ABCDEFGHIJ";
+    var numberOut = "0123456789";
+
+	var pozice= strigIn.indexOf(st);
+	nOut = parseInt(numberOut.substr(pozice,1));
+	return nOut;
+}
+
+//----------PŘEVEDE ČÍSLO NA PÍSMENO--------------
+function GetLetterFromInt(st){
+
+	var nOut;
+    var stringOut = "ABCDEFGHIJ";
+    var numberIn = "0123456789";
+
+	var pozice= numberIn.indexOf(st);
+	nOut = stringOut.substr(pozice,1);
+	return nOut;
+}
+
+
+function NajdiCestu(){
+
+  GetValuesInTable();
+
+	document.getElementById('respons').innerHTML="";
+	let isVisited = new Array(v);
+     for(let i=0;i<v;i++)
+         isVisited[i]=false;
+        let pathList = [];
+  
+        // vložím do listu vrchol, ze kterého začínám
+        pathList.push(s);
+  
+        // zavolám rekurzivní funkci
+        printAllPathsUtil(s, d, isVisited, pathList);
+}
+
+
+
+//-----z tabulky načte data a upraví je pro algoritmus----
+function GetValuesInTable()
+{
+
+	var strPocet = document.getElementById('pocetVrcholu').value;
+	if(strPocet=="")return;
+	var pocVrcholu = parseInt(strPocet);
+	var startVrchol = document.getElementById('cestaZ').value;
+	var endVrchol = document.getElementById('cestaD').value;
+
+	s = GetNumberFromString(startVrchol);
+	d = GetNumberFromString(endVrchol);
+	Graph(pocVrcholu);
+	
+	var mytable = document.getElementsByTagName("table")[0];	
+    for (var r = 1, n = mytable.rows.length; r < n; r++) {
+		var vrchol = mytable.rows[r].cells[0].innerHTML.toUpperCase();//VRCHOL
+		var sousedi = mytable.rows[r].cells[1].innerHTML.toUpperCase();//SOUSEDI
+
+		if (vrchol.length>0 && sousedi.length>0)
+		{
+			SetPoleVrcholu(vrchol,sousedi)
+		}		
+		
+    }
+	
+	
+}
+
+
+
+
+function xGetValuesInTable()
+{
+	var strPocet = document.getElementById('pocetVrcholu').value;
+	if(strPocet=="")return;
+	var pocVrcholu = parseInt(strPocet);
+	
+	Graph(4);
+	var mytable = document.getElementsByTagName("table")[0];	
+    for (var r = 1, n = mytable.rows.length; r < n; r++) {
+		var z = parseInt(mytable.rows[r].cells[0].innerHTML);
+		var d = parseInt(mytable.rows[r].cells[1].innerHTML);
+		addEdge(z, d);
+    }
+}
+
+
+
+function GenerujTabulku()
+{
+	document.getElementById('tabulka').innerHTML="";
+	var strPocet = document.getElementById('pocetVrcholu').value;
+	if(strPocet=="")return;
+	var pocet = parseInt(strPocet);
+	
+	var table = document.createElement('table');
+	var tr = document.createElement('tr');
+	var th1 = document.createElement('th');
+	var th2 = document.createElement('th');
+	
+		var textH1 = document.createTextNode(' Vrchol ');
+		var textH2 = document.createTextNode(' Sousedi ');
+		
+		th1.appendChild(textH1);
+		th2.appendChild(textH2);
+		tr.appendChild(th1);
+		tr.appendChild(th2);
+
+		table.appendChild(tr);
+
+	for (var i = 1; i < pocet+1; i++){
+		var tr = document.createElement('tr');   
+
+		var td1 = document.createElement('td');
+		var td2 = document.createElement('td');
+
+		var text1 = document.createTextNode(i);
+		var text2 = document.createTextNode(i);
+
+		//td1.appendChild(text1);
+		//td2.appendChild(text2);
+		tr.appendChild(td1);
+		tr.appendChild(td2);
+
+		table.appendChild(tr);
+		table.setAttribute('contenteditable', true);
+	}
+	document.getElementById('tabulka').appendChild(table);
+
+}
+
+
+// A directed graph using
+// adjacency list representation
+function Graph(vertices)
+{
+    // initialise vertex count
+        v = vertices;
+  
+        // initialise adjacency list
+        initAdjList();
+}
+
+// utility method to initialise
+    // adjacency list
+function initAdjList()
+{
+    adjList = new Array(v);
+  
+        for (let i = 0; i < v; i++) {
+            adjList[i] = [];
+        }
+}
+
+// add edge from u to v
+function addEdge(u,v)
+{
+    // Add v to u's list.
+        adjList[u].push(v);
+}
+
+// Prints all paths from
+    // 's' to 'd'
+function printAllPaths(s,d)
+{
+  
+	document.getElementById('respons').innerHTML="";
+	let isVisited = new Array(v);
+     for(let i=0;i<v;i++)
+         isVisited[i]=false;
+        let pathList = [];
+  
+        // add source to path[]
+        pathList.push(s);
+  
+        // Call recursive utility
+        printAllPathsUtil(s, d, isVisited, pathList);
+}
+
+
+
+function VypisCesty(localPathList){
+
+	var strOutCesta="";
+	var str;
+	
+	localPathList.forEach(function(element) {
+	  str =GetLetterFromInt(element);
+	  strOutCesta+= str +",";
+	})
+	
+	document.getElementById('respons').innerHTML += strOutCesta+"<br>";
+
+}
+
+
+// A recursive function to print
+    // all paths from 'u' to 'd'.
+    // isVisited[] keeps track of
+    // vertices in current path.
+    // localPathList<> stores actual
+    // vertices in the current path
+function printAllPathsUtil(u,d,isVisited,localPathList)
+{
+    if (u == (d)) {
+		VypisCesty(localPathList);
+            return;
+        }
+  
+        // Mark the current node
+        isVisited[u] = true;
+		let rok=adjList[u].length;
+  
+        // Recur for all the vertices
+        // adjacent to current vertex
+        for (let i=0;i< adjList[u].length;i++) {
+            if (!isVisited[adjList[u][i]]) {
+                // store current node
+                // in path[]
+                localPathList.push(adjList[u][i]);
+                printAllPathsUtil(adjList[u][i], d,
+                isVisited, localPathList);
+  
+                // remove current node
+                // in path[]
+				let coto=adjList[u][i];
+                localPathList.splice(localPathList.indexOf(adjList[u][i]),1);
+            }
+        }
+  
+        // Mark the current node
+        isVisited[u] = false;
+}
+
+ // Driver program
+// Create a sample graph
+/*
+Graph(4);
+
+addEdge(0, 1);
+addEdge(0, 2);
+addEdge(0, 3);
+addEdge(1, 0);
+addEdge(2, 0);
+addEdge(3, 0);
+addEdge(2, 1);
+addEdge(1, 3);
+
+
+/*
+addEdge(A, B);
+addEdge(A, C);
+addEdge(C, A);
+addEdge(C, B);
+addEdge(B, D);
+addEdge(A, D);
+*/
+
+// CESTA Z
+let s = 2;
+
+// CESTA DO
+let d = 3;
+
+
+</script>
+
+
+
+</body>
+</html>
