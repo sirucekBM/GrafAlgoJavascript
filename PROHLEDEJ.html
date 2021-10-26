@@ -1,77 +1,252 @@
-<!DOCTYPE html>
-<html lang="cs">
-<head>
-<style>
-table, th, td {
-    border: 1px solid black;
-  border-collapse: collapse;
-  
-}
+<!DOCTYPE>
 
-table, tr{
-	height: 30px;
-	width: 120px;
-}
-</style>
+<html>
 
-</head>
+	<head>
+		<title>Algoritmus na hledání cesty</title>
 
-<body>
+		<meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1, maximum-scale=1">
 
-<button onclick="Testtestu()">Test</button>
+		<script src="cytoscape.min.js"></script>
+		<script src="layout-base.js"></script>
+		<script src="avsdf-base.js"></script>
+		<script src="cytoscape-avsdf.js"></script>
+
+		<style>
+			body {
+				font-family: helvetica;
+				font-size: 15px;
+			}
+
+			#cy {
+				width: 80%;
+				height: 80%;
+				z-index: 999;
+			}
+			
+			table, th, td {
+				border: 1px solid black;
+			  border-collapse: collapse;
+			  height :20px;
+			  width:170px;
+			}
+			h1 {
+				opacity: 0.5;
+				font-size: 1.5em;
+				font-weight: bold;
+			}
+
+			button {
+				font-size: 15px;
+				margin-right: 10px;
+			}
+
+			.line {
+				clear:left;
+				height:25px;
+				margin-top:6px;
+				margin-right:6px;
+				margin-bottom:6px;
+			}
+
+			.radio {
+				margin-left:25px;
+			}
+			
+			#containerBox{
+			  position: relative;
+			  width: 70%;
+			  padding-left: 20px;
+			  margin: auto;
+			  border: 1px solid black;
+			  min-height: 90%;
+			}
+			
+			#containerInput{
+			  width: 30%;			  
+			  display: block;
+			  margin:10px;
+			}
+			
+			
+			#containerGraf{
+			  position: absolute;
+			  top: 70px;
+			  right: 0;
+			  width: 65%;
+			  height: 90%;
+			 
+			}
+			
+			#responsAll{
+				opacity: 0.8;
+			}
+
+			#respons{
+				font-weight: bold;
+			}
+			
+			
+		</style>
+
+		<script>
 
 
-<button onclick="NajdiCestu()">Najdi cestu</button>
-<br>
-<p>---------------</p>
-<label for="lname">Počet vrcholů</label>
-<input type="number" id="pocetVrcholu" name="lname"  maxlength="2" size="2"><br>
-<p>----------------------</p>
-  <label for="cesta">Cesta z:</label>
-  <input type="text" id="cestaZ" name="cesta" maxlength="1" size="1">
-  <label for="cesta">Cesta do:</label>
-  <input type="text" id="cestaD" name="cesta" maxlength="1" size="1"><br><br>
+		let  v;
+		let adjList;
 
-<br><button onclick="GenerujTabulku()">Generuj tabulku</button>
-<div id="tabulka"></div>
-<br>
-<p>-----------------</p>
-<div id="path"></div>
-<br>
-<div id="respons">Výsledná cesta:<br></div>
+		// CESTA Z
+		let s ;
+		// CESTA DO
+		let d;	
 
+		let hranyGrafu = [];
+		let vrcholyGrafu = [];
+		let vysledneCesty = [];		
+				
+		function GenerujGraf(){
 
+					//--------------DYNAMICKÉ VYTVOŘENÍ GRAFU-------------------------------------------------------------------
+					var strVrcholy='{"nodes":[';
+					var strHrany='"edges":[';
+				
+					
+					arrVrcholy = vrcholyGrafu;
+					arrHrany=hranyGrafu;
+					
+					for(var v=0;v<arrVrcholy.length;v++){
+						strVrcholy += '{"data": {"id": "'+ arrVrcholy[v] +'"}},';
+					}
+					strVrcholy = strVrcholy.substring(0,strVrcholy.length-1) + ']';
+					for(var v=0;v<arrHrany.length;v++){
+						strHrany += '{"data": {"source": "'+ arrHrany[v][0] +'","target": "'+ arrHrany[v][1] +'","directed": "'+ 'false' +'"}},';
+					}
+					strHrany = strHrany.substring(0,strHrany.length-1) + ']}';					
+					let jonElementy =   strVrcholy + ',' + strHrany;
 
+					const objElementy = JSON.parse(jonElementy);
+					var cy = window.cy = cytoscape({
+						container: document.getElementById('cy'),
+						layout: {
+							name: 'avsdf',
+							nodeSeparation: 50
+						},
+						  
 
-<script>
+						  layout: {
+							name: 'grid',
+							rows: 1
+						  },
 
+						  style: [
+						{
+							selector: 'node',
+							style: {
+								'label': 'data(id)',
+								'text-valign': 'center',
+								'color': '#000000',
+								'background-color': '#3a7ecf'
+							}
+						},
 
-let  v;
+						{
+							selector: 'edge',
+							style: {
+								'width': 2,
+								'line-color': '#3a7ecf',
+								'opacity': 0.5
+							}
+						}
+						  ],
+						  
+						  elements: objElementy
+					});
+				}
+				//----------------------------------------------------------------------------------
+				
 
-let adjList;
+				//-----------------------------------------------
+				function RandomSetGraf(){
+					cy.nodes().forEach(function(ele){
+						ele.data().weight = Math.floor((Math.random() * 10) + 1);
+					});
 
-function Testtestu(){
+					var layout = cy.layout({
+						name: 'circle',
+						animate: true,
+						sort: function(a, b){ return a.data('weight') - b.data('weight') },
+						radius: 120,
+						animationDuration: 1000,
+						animationEasing: 'ease-in-out'
+					});
+					layout.run();
+				}
+				
+				
+				
+		function GenerujTabulku()
+		{
+			document.getElementById('tabulka').innerHTML="";
+			var strPocet = document.getElementById('pocetVrcholu').value;
+			if(strPocet=="")return;
+			var pocet = parseInt(strPocet);
+			
+			var table = document.createElement('table');
+			var tr = document.createElement('tr');
+			var th1 = document.createElement('th');
+			var th2 = document.createElement('th');
+			
+				var textH1 = document.createTextNode(' Vrchol ');
+				var textH2 = document.createTextNode(' Sousedi ');
+				
+				th1.appendChild(textH1);
+				th2.appendChild(textH2);
+				tr.appendChild(th1);
+				tr.appendChild(th2);
 
-	var sousedi = "BCDE";
-	var vrchol="A";
-	var z;
-	var d;
+				table.appendChild(tr);
 
-	var pocetSousedu = sousedi.length;
-	for(var r=0;r<pocetSousedu;r++){
-		z=vrchol;
-		d =sousedi.substr(r,1);
+			for (var i = 1; i < pocet+1; i++){
+				var tr = document.createElement('tr');   
+
+				var td1 = document.createElement('td');
+				var td2 = document.createElement('td');
+
+				var text1 = document.createTextNode(i);
+				var text2 = document.createTextNode(i);
+
+				tr.appendChild(td1);
+				tr.appendChild(td2);
+
+				table.appendChild(tr);
+				table.setAttribute('contenteditable', true);
+			}
+			document.getElementById('tabulka').appendChild(table);
+		}
+
+	function Graph(vertices)
+	{
+	    // inicializace počet vrcholů 
+	        v = vertices;
+	  
+	   //inicializace seznam sousedů 
+	        initAdjList();
 	}
 
-	for(var r=0;r<pocetSousedu;r++){
-		z=sousedi.substr(r,1);
-		d =vrchol;
+	function initAdjList()
+	{
+	    adjList = new Array(v);
+	  
+	        for (let i = 0; i < v; i++) {
+	            adjList[i] = [];
+	        }
 	}
 
-
-}
-
-
+	// přidám hranu Z Do do pole
+	function addEdge(u,v)
+	{
+	        adjList[u].push(v);
+	}
 
 
 function SetPoleVrcholu(vrcholIn,sousediIn){
@@ -82,12 +257,19 @@ function SetPoleVrcholu(vrcholIn,sousediIn){
 	var d;
 	var intZ;
 	var intD;
+	var hrana;
+	var vrcholky=[];
 
 	var pocetSousedu = sousedi.length;
 	for(var r=0;r<pocetSousedu;r++){
 		z=vrchol;
 		d =sousedi.substr(r,1);
 		
+		
+		hrana=[z,d];
+		vrcholky.push(z);
+		vrcholky.push(d);
+		hranyGrafu.push(hrana);
 		intZ = GetNumberFromString(z);
 		intD = GetNumberFromString(d);
 		
@@ -104,43 +286,59 @@ function SetPoleVrcholu(vrcholIn,sousediIn){
 		addEdge(intZ, intD);//zapíšu do pole hranu
 	}
 
-
+	uniqueArray = vrcholky.filter(function(item, pos) {return vrcholky.indexOf(item) == pos;})
+	SetArrayVrcholy(uniqueArray);
 }
 
 
 
+function SetArrayVrcholy(uniqArr){
 
-//----převede písmeno na číslo------------
-function GetNumberFromString(st){
-
-	st = st.toUpperCase();
-	var nOut;
-    var strigIn = "ABCDEFGHIJ";
-    var numberOut = "0123456789";
-
-	var pozice= strigIn.indexOf(st);
-	nOut = parseInt(numberOut.substr(pozice,1));
-	return nOut;
+	for (const element of uniqArr) {
+	   vrcholyGrafu.push(element);
+	}
+	vrcholyGrafu = vrcholyGrafu.filter(function(item, pos) {return vrcholyGrafu.indexOf(item) == pos;})
 }
 
-//----------PŘEVEDE ČÍSLO NA PÍSMENO--------------
-function GetLetterFromInt(st){
 
-	var nOut;
-    var stringOut = "ABCDEFGHIJ";
-    var numberIn = "0123456789";
 
-	var pozice= numberIn.indexOf(st);
-	nOut = stringOut.substr(pozice,1);
-	return nOut;
-}
+	//----převede písmeno na číslo------------
+	function GetNumberFromString(st){
+
+		st = st.toUpperCase();
+		var nOut;
+		var strigIn = "ABCDEFGHIJ";
+		var numberOut = "0123456789";
+
+		var pozice= strigIn.indexOf(st);
+		nOut = parseInt(numberOut.substr(pozice,1));
+		return nOut;
+	}
+
+	//----------PŘEVEDE ČÍSLO NA PÍSMENO--------------
+	function GetLetterFromInt(st){
+
+		var nOut;
+		var stringOut = "ABCDEFGHIJ";
+		var numberIn = "0123456789";
+
+		var pozice= numberIn.indexOf(st);
+		nOut = stringOut.substr(pozice,1);
+		return nOut;
+	}
+
+
 
 
 function NajdiCestu(){
 
+  hranyGrafu = [];
+  vrcholyGrafu = [];
+  vysledneCesty=[];
   GetValuesInTable();
 
 	document.getElementById('respons').innerHTML="";
+	document.getElementById('responsAll').innerHTML="";
 	let isVisited = new Array(v);
      for(let i=0;i<v;i++)
          isVisited[i]=false;
@@ -151,7 +349,31 @@ function NajdiCestu(){
   
         // zavolám rekurzivní funkci
         printAllPathsUtil(s, d, isVisited, pathList);
+
+		GenerujGraf();
+		RandomSetGraf();
+		ZobrazNejkratsiCestu();
 }
+
+
+
+function ZobrazNejkratsiCestu(){
+
+	let strCesta;
+	strMinCesta=vysledneCesty[0];
+	for(var v=1;v<vysledneCesty.length;v++){
+		strCesta=vysledneCesty[v];
+		if(strMinCesta.length>strCesta.length){
+			strMinCesta=strCesta;
+		}
+		
+	}
+	
+	document.getElementById('respons').innerHTML += strMinCesta+"<br>";
+
+
+}
+
 
 
 
@@ -180,121 +402,7 @@ function GetValuesInTable()
 		}		
 		
     }
-	
-	
 }
-
-
-
-
-function xGetValuesInTable()
-{
-	var strPocet = document.getElementById('pocetVrcholu').value;
-	if(strPocet=="")return;
-	var pocVrcholu = parseInt(strPocet);
-	
-	Graph(4);
-	var mytable = document.getElementsByTagName("table")[0];	
-    for (var r = 1, n = mytable.rows.length; r < n; r++) {
-		var z = parseInt(mytable.rows[r].cells[0].innerHTML);
-		var d = parseInt(mytable.rows[r].cells[1].innerHTML);
-		addEdge(z, d);
-    }
-}
-
-
-
-function GenerujTabulku()
-{
-	document.getElementById('tabulka').innerHTML="";
-	var strPocet = document.getElementById('pocetVrcholu').value;
-	if(strPocet=="")return;
-	var pocet = parseInt(strPocet);
-	
-	var table = document.createElement('table');
-	var tr = document.createElement('tr');
-	var th1 = document.createElement('th');
-	var th2 = document.createElement('th');
-	
-		var textH1 = document.createTextNode(' Vrchol ');
-		var textH2 = document.createTextNode(' Sousedi ');
-		
-		th1.appendChild(textH1);
-		th2.appendChild(textH2);
-		tr.appendChild(th1);
-		tr.appendChild(th2);
-
-		table.appendChild(tr);
-
-	for (var i = 1; i < pocet+1; i++){
-		var tr = document.createElement('tr');   
-
-		var td1 = document.createElement('td');
-		var td2 = document.createElement('td');
-
-		var text1 = document.createTextNode(i);
-		var text2 = document.createTextNode(i);
-
-		//td1.appendChild(text1);
-		//td2.appendChild(text2);
-		tr.appendChild(td1);
-		tr.appendChild(td2);
-
-		table.appendChild(tr);
-		table.setAttribute('contenteditable', true);
-	}
-	document.getElementById('tabulka').appendChild(table);
-
-}
-
-
-// A directed graph using
-// adjacency list representation
-function Graph(vertices)
-{
-    // initialise vertex count
-        v = vertices;
-  
-        // initialise adjacency list
-        initAdjList();
-}
-
-// utility method to initialise
-    // adjacency list
-function initAdjList()
-{
-    adjList = new Array(v);
-  
-        for (let i = 0; i < v; i++) {
-            adjList[i] = [];
-        }
-}
-
-// add edge from u to v
-function addEdge(u,v)
-{
-    // Add v to u's list.
-        adjList[u].push(v);
-}
-
-// Prints all paths from
-    // 's' to 'd'
-function printAllPaths(s,d)
-{
-  
-	document.getElementById('respons').innerHTML="";
-	let isVisited = new Array(v);
-     for(let i=0;i<v;i++)
-         isVisited[i]=false;
-        let pathList = [];
-  
-        // add source to path[]
-        pathList.push(s);
-  
-        // Call recursive utility
-        printAllPathsUtil(s, d, isVisited, pathList);
-}
-
 
 
 function VypisCesty(localPathList){
@@ -307,17 +415,29 @@ function VypisCesty(localPathList){
 	  strOutCesta+= str +",";
 	})
 	
-	document.getElementById('respons').innerHTML += strOutCesta+"<br>";
-
+	vysledneCesty.push(strOutCesta);
+	document.getElementById('responsAll').innerHTML += strOutCesta+"<br>";
 }
 
 
-// A recursive function to print
-    // all paths from 'u' to 'd'.
-    // isVisited[] keeps track of
-    // vertices in current path.
-    // localPathList<> stores actual
-    // vertices in the current path
+function printAllPaths(s,d)
+{
+  
+	document.getElementById('respons').innerHTML="";
+	document.getElementById('responsAll').innerHTML="";
+	let isVisited = new Array(v);
+     for(let i=0;i<v;i++)
+         isVisited[i]=false;
+        let pathList = [];
+  
+        // přidám zdrojový vrchol do seznamu
+        pathList.push(s);
+  
+        // zavolám rekurzivní metodu
+        printAllPathsUtil(s, d, isVisited, pathList);
+}
+
+//--------------------
 function printAllPathsUtil(u,d,isVisited,localPathList)
 {
     if (u == (d)) {
@@ -325,65 +445,144 @@ function printAllPathsUtil(u,d,isVisited,localPathList)
             return;
         }
   
-        // Mark the current node
+        // označím navštívený vrchol
         isVisited[u] = true;
 		let rok=adjList[u].length;
   
-        // Recur for all the vertices
-        // adjacent to current vertex
+        // PROJDU REKURZIVNĚ VŠECHNY VRCHOLY
+        // SOUSEDÍCÍ S AKTUÁLNÍM VRCHOLEM
         for (let i=0;i< adjList[u].length;i++) {
             if (!isVisited[adjList[u][i]]) {
-                // store current node
-                // in path[]
+
                 localPathList.push(adjList[u][i]);
                 printAllPathsUtil(adjList[u][i], d,
                 isVisited, localPathList);
   
-                // remove current node
-                // in path[]
+                // odstraním navštívený bod z pole
 				let coto=adjList[u][i];
                 localPathList.splice(localPathList.indexOf(adjList[u][i]),1);
             }
         }
   
-        // Mark the current node
+        // označím nenavštívený vrchol
         isVisited[u] = false;
 }
 
- // Driver program
-// Create a sample graph
-/*
-Graph(4);
+		function SetUvodTabulka(){
+			document.getElementById('pocetVrcholu').value = 3;
+			document.getElementById('cestaZ').value="A";
+			document.getElementById('cestaD').value="C";
+			document.getElementById('tabulka').innerHTML="";
+			var strPocet = document.getElementById('pocetVrcholu').value;
+			if(strPocet=="")return;
+			var pocet = parseInt(strPocet);
+			
+			var table = document.createElement('table');
+			var tr = document.createElement('tr');
+			var th1 = document.createElement('th');
+			var th2 = document.createElement('th');
+			
+				var textH1 = document.createTextNode(' Vrchol ');
+				var textH2 = document.createTextNode(' Sousedi ');
+				
+				th1.appendChild(textH1);
+				th2.appendChild(textH2);
+				tr.appendChild(th1);
+				tr.appendChild(th2);
 
-addEdge(0, 1);
-addEdge(0, 2);
-addEdge(0, 3);
-addEdge(1, 0);
-addEdge(2, 0);
-addEdge(3, 0);
-addEdge(2, 1);
-addEdge(1, 3);
+				table.appendChild(tr);
+
+			for (var i = 1; i < pocet+1; i++){
+				var tr = document.createElement('tr');   
+
+				var td1 = document.createElement('td');
+				var td2 = document.createElement('td');
+
+				if(i==1){
+					var text1 = document.createTextNode("A");
+					var text2 = document.createTextNode("BC");
+				}
+				
+				if(i==2){
+					var text1 = document.createTextNode("B");
+					var text2 = document.createTextNode("C");
+				}
+				
+				if(i==3){
+					var text1 = document.createTextNode("");
+					var text2 = document.createTextNode("");
+				}
+
+				tr.appendChild(td1);
+				tr.appendChild(td2);
+				td1.appendChild(text1);
+				td2.appendChild(text2);
+
+				table.appendChild(tr);
+				table.setAttribute('contenteditable', true);
+			}
+			document.getElementById('tabulka').appendChild(table);
+
+		}
 
 
-/*
-addEdge(A, B);
-addEdge(A, C);
-addEdge(C, A);
-addEdge(C, B);
-addEdge(B, D);
-addEdge(A, D);
-*/
+window.onload = function() {
+ SetUvodTabulka();
+ NajdiCestu();
 
-// CESTA Z
-let s = 2;
-
-// CESTA DO
-let d = 3;
-
-
-</script>
+};
 
 
 
-</body>
+		</script>
+	</head>
+
+	<body>
+	
+	
+	
+	<div id="containerBox">
+		<h1>Algoritmus na hledání cesty mezi vrcholy grafu</h1>
+
+		<p>--------------------------------------------------------------------------</p>
+		
+		<div id="containerInput">
+				<button onclick="NajdiCestu()">Najdi cestu</button>
+
+				<br>
+				<p>---------------</p>
+				<label for="lname">Vyber počet vrcholů grafu</label>
+				<select id="pocetVrcholu" onchange="GenerujTabulku()">
+				  <option value="2">2</option>
+				  <option value="3">3</option>
+				  <option value="4">4</option>
+				  <option value="5">5</option>
+				  <option value="6">6</option>
+				  <option value="7">7</option>
+				  <option value="8">8</option>
+				  <option value="9">9</option>
+				  <option value="10">10</option>
+				</select>
+				<p>-----------------------------------------------------------------------</p>
+				<a>Lze zadávat vrcholy z rozsahu: "ABCDEFGHIJ" </a>
+				<p>______________________________________</p>
+				  <label for="cesta">Cesta z vrcholu:</label>
+				  <input type="text" id="cestaZ" name="cesta" maxlength="1" size="1">
+				  <label for="cesta">Cesta do vrcholu:</label>
+				  <input type="text" id="cestaD" name="cesta" maxlength="1" size="1"><br><br>
+				
+				<div id="tabulka"></div>
+				<p>-----------------</p>
+				<a>Nejkratší cesta: <span id="respons"> </span></a>
+				<p>-----------------</p>
+				<a>Všechny cesty:</a>
+				<div id="responsAll"><br></div>
+		</div>		
+		
+		<div id="containerGraf">
+				<div id="cy"></div>
+		</div>
+</div>
+	</body>
+
 </html>
