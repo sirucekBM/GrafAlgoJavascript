@@ -32,7 +32,7 @@ return /******/ (function(modules) { // webpackBootstrap
 /******/ 		// Flag the module as loaded
 /******/ 		module.l = true;
 /******/
-/******/ 		// Return the exports of the module
+/******/ 		// Return the exports of the modul
 /******/ 		return module.exports;
 /******/ 	}
 /******/

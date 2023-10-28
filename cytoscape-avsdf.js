@@ -9,7 +9,7 @@
 		root["cytoscapeAvsdf"] = factory(root["avsdfBase"]);
 })(this, function(__WEBPACK_EXTERNAL_MODULE_0__) {
 return /******/ (function(modules) { // webpackBootstrap
-/******/ 	// The module cache
+/******/ 	// The module cache ja 
 /******/ 	var installedModules = {};
 /******/
 /******/ 	// The require function

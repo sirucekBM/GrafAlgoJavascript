@@ -283,7 +283,7 @@ function SetPoleVrcholu(vrcholIn,sousediIn){
 		intZ = GetNumberFromString(z);
 		intD = GetNumberFromString(d);
 		
-		addEdge(intZ, intD);//zapíšu do pole hranu
+		addEdge(intZ, intD);//zapíšu do pole hranu 
 	}
 
 	uniqueArray = vrcholky.filter(function(item, pos) {return vrcholky.indexOf(item) == pos;})
@@ -302,7 +302,7 @@ function SetArrayVrcholy(uniqArr){
 
 
 
-	//----převede písmeno na číslo------------
+	//----převede písmeno na číslo aby s e stím dalo dále pracovat------------
 	function GetNumberFromString(st){
 
 		st = st.toUpperCase();
