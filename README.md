@@ -1,3 +1,3 @@
 # GrafAlgoJavascript
 Aplikace pro nalezení všech cest v grafu.
-Je to jen testovací aplikace
+Je to jen testovací aplikace z dob minulých
